@@ -63,7 +63,7 @@ static struct options kval[] = {
 	{.opt = NULL}
 };
 
-int keyboard_fill_report(char report[8], char buf[BUF_LEN], int *hold)
+int keyboard_fill_report(char report[64], char buf[BUF_LEN], int *hold)
 {
 	char *tok = strtok(buf, " ");
 	int key = 0;
@@ -116,7 +116,7 @@ static struct options mmod[] = {
 	{.opt = NULL}
 };
 
-int mouse_fill_report(char report[8], char buf[BUF_LEN], int *hold)
+int mouse_fill_report(char report[64], char buf[BUF_LEN], int *hold)
 {
 	char *tok = strtok(buf, " ");
 	int mvt = 0;
@@ -167,7 +167,7 @@ static struct options jmod[] = {
 	{.opt = NULL}
 };
 
-int joystick_fill_report(char report[8], char buf[BUF_LEN], int *hold)
+int joystick_fill_report(char report[64], char buf[BUF_LEN], int *hold)
 {
 	char *tok = strtok(buf, " ");
 	int mvt = 0;
@@ -206,6 +206,63 @@ int joystick_fill_report(char report[8], char buf[BUF_LEN], int *hold)
 	return 4;
 }
 
+static struct options pmod[] = {
+	{.opt = "--sample",	.val = 0x42},
+	{.opt = NULL}
+};
+
+int ps4_fill_report(char report[64], char buf[BUF_LEN], int *hold) {
+	char *tok = strtok(buf, " ");
+	int key = 0;
+	int i = 0;
+
+	for (; tok != NULL; tok = strtok(NULL, " ")) {
+		if (strcmp(tok, "--quit") == 0) {
+			return -1;
+		} else if (strcmp(tok, "--sample") == 0) {
+			report[0] = 0x01;
+			report[1] = 0x81;
+			report[2] = 0x80;
+			report[3] = 0x83;
+			report[4] = 0x7A;
+			report[5] = 0x08;
+
+			report[10] = 0x93;
+			report[11] = 0x5F;
+			report[12] = 0xFB;
+			report[13] = 0xD2;
+			report[14] = 0xFF;
+			report[15] = 0xDA;
+			report[16] = 0xFF;
+			report[17] = 0xD8;
+			report[18] = 0xFF;
+			report[19] = 0x4F;
+			report[20] = 0xEE;
+			report[21] = 0x14;
+			report[22] = 0x1B;
+			report[23] = 0x99;
+			report[24] = 0xFE;
+
+			report[30] = 0x05;
+
+			report[35] = 0x80;
+
+			report[39] = 0x80;
+
+			report[44] = 0x80;
+
+			report[48] = 0x80;
+
+			report[53] = 0x80;
+
+			report[57] = 0x80;
+
+			report[62] = 0x80;
+			return 64;
+		}
+	}
+}
+
 void print_options(char c)
 {
 	int i = 0;
@@ -228,11 +285,18 @@ void print_options(char c)
 		printf("\n	mouse values:\n"
 		       "		Two signed numbers\n"
 		       "--quit to close\n");
-	} else {
+	} else if (c == 'j') {
 		printf("	joystick options:\n");
 		for (i = 0; jmod[i].opt != NULL; i++)
 			printf("\t\t%s\n", jmod[i].opt);
 		printf("\n	joystick values:\n"
+		       "		three signed numbers\n"
+		       "--quit to close\n");
+	} else if (c == 'p') {
+		printf("	ps4 options:\n");
+		for (i = 0; pmod[i].opt != NULL; i++)
+			printf("\t\t%s\n", pmod[i].opt);
+		printf("\n	ps4 values:\n"
 		       "		three signed numbers\n"
 		       "--quit to close\n");
 	}
@@ -244,19 +308,19 @@ int main(int argc, const char *argv[])
 	int fd = 0;
 	char buf[BUF_LEN];
 	int cmd_len;
-	char report[8];
+	char report[64];
 	int to_send = 8;
 	int hold = 0;
 	fd_set rfds;
 	int retval, i;
 
 	if (argc < 3) {
-		fprintf(stderr, "Usage: %s devname mouse|keyboard|joystick\n",
+		fprintf(stderr, "Usage: %s devname mouse|keyboard|joystick|ps4\n",
 			argv[0]);
 		return 1;
 	}
 
-	if (argv[2][0] != 'k' && argv[2][0] != 'm' && argv[2][0] != 'j')
+	if (argv[2][0] != 'k' && argv[2][0] != 'm' && argv[2][0] != 'j' && argv[2][0] != 'p')
 	  return 2;
 
 	filename = argv[1];
@@ -305,8 +369,12 @@ int main(int argc, const char *argv[])
 				to_send = keyboard_fill_report(report, buf, &hold);
 			else if (argv[2][0] == 'm')
 				to_send = mouse_fill_report(report, buf, &hold);
-			else
+			else if (argv[2][0] == 'j')
 				to_send = joystick_fill_report(report, buf, &hold);
+			else if (argv[2][0] == 'p')
+				to_send = ps4_fill_report(report, buf, &hold);
+			else
+				printf("Invalid device parameter\n");
 
 			if (to_send == -1)
 				break;
