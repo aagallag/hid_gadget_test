@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Hid gadget test by aagallag</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Hid gadget test</h1>
+      <h2 class="project-tagline">Linux USB HID Gadget Test Application</h2>
+      <a href="https://github.com/aagallag/hid_gadget_test" class="btn">View on GitHub</a>
+      <a href="https://github.com/aagallag/hid_gadget_test/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/aagallag/hid_gadget_test/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h2>
+<a id="linux-usb-hid-gadget-driver" class="anchor" href="#linux-usb-hid-gadget-driver" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Linux USB HID gadget driver</h2>
+
+<p><a href="https://travis-ci.org/aagallag/hid_gadget_test"><img src="https://travis-ci.org/aagallag/hid_gadget_test.svg?branch=master" alt="Build Status"></a></p>
+
+<h3>
+<a id="introduction" class="anchor" href="#introduction" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Introduction</h3>
+
+<pre><code>The HID Gadget driver provides emulation of USB Human Interface
+Devices (HID). The basic HID handling is done in the kernel,
+and HID reports can be sent/received through I/O on the
+/dev/hidgX character devices.
+
+For more details about HID, see the developer page on
+http://www.usb.org/developers/hidpage/
+</code></pre>
+
+<h3>
+<a id="configuration" class="anchor" href="#configuration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Configuration</h3>
+
+<pre><code>g_hid is a platform driver, so to use it you need to add
+struct platform_device(s) to your platform code defining the
+HID function descriptors you want to use - E.G. something
+like:
+</code></pre>
+
+<div class="highlight highlight-source-c"><pre>#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">&lt;</span>linux/platform_device.h<span class="pl-pds">&gt;</span></span>
+#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">&lt;</span>linux/usb/g_hid.h<span class="pl-pds">&gt;</span></span>
+
+<span class="pl-c">/* hid descriptor for a keyboard */</span>
+<span class="pl-k">static</span> <span class="pl-k">struct</span> hidg_func_descriptor my_hid_data = {
+    .<span class="pl-smi">subclass</span>       = <span class="pl-c1">0</span>, <span class="pl-c">/* No subclass */</span>
+    .<span class="pl-smi">protocol</span>       = <span class="pl-c1">1</span>, <span class="pl-c">/* Keyboard */</span>
+    .<span class="pl-smi">report_length</span>      = <span class="pl-c1">8</span>,
+    .<span class="pl-smi">report_desc_length</span> = <span class="pl-c1">63</span>,
+    .<span class="pl-smi">report_desc</span>        = {
+        0x05, 0x01, <span class="pl-c">/* USAGE_PAGE (Generic Desktop)           */</span>
+        0x09, 0x06, <span class="pl-c">/* USAGE (Keyboard)                       */</span>
+        0xa1, 0x01, <span class="pl-c">/* COLLECTION (Application)               */</span>
+        0x05, 0x07, <span class="pl-c">/*   USAGE_PAGE (Keyboard)                */</span>
+        0x19, 0xe0, <span class="pl-c">/*   USAGE_MINIMUM (Keyboard LeftControl) */</span>
+        0x29, 0xe7, <span class="pl-c">/*   USAGE_MAXIMUM (Keyboard Right GUI)   */</span>
+        0x15, 0x00, <span class="pl-c">/*   LOGICAL_MINIMUM (0)                  */</span>
+        0x25, 0x01, <span class="pl-c">/*   LOGICAL_MAXIMUM (1)                  */</span>
+        0x75, 0x01, <span class="pl-c">/*   REPORT_SIZE (1)                      */</span>
+        0x95, 0x08, <span class="pl-c">/*   REPORT_COUNT (8)                     */</span>
+        0x81, 0x02, <span class="pl-c">/*   INPUT (Data,Var,Abs)                 */</span>
+        0x95, 0x01, <span class="pl-c">/*   REPORT_COUNT (1)                     */</span>
+        0x75, 0x08, <span class="pl-c">/*   REPORT_SIZE (8)                      */</span>
+        0x81, 0x03, <span class="pl-c">/*   INPUT (Cnst,Var,Abs)                 */</span>
+        0x95, 0x05, <span class="pl-c">/*   REPORT_COUNT (5)                     */</span>
+        0x75, 0x01, <span class="pl-c">/*   REPORT_SIZE (1)                      */</span>
+        0x05, 0x08, <span class="pl-c">/*   USAGE_PAGE (LEDs)                    */</span>
+        0x19, 0x01, <span class="pl-c">/*   USAGE_MINIMUM (Num Lock)             */</span>
+        0x29, 0x05, <span class="pl-c">/*   USAGE_MAXIMUM (Kana)                 */</span>
+        0x91, 0x02, <span class="pl-c">/*   OUTPUT (Data,Var,Abs)                */</span>
+        0x95, 0x01, <span class="pl-c">/*   REPORT_COUNT (1)                     */</span>
+        0x75, 0x03, <span class="pl-c">/*   REPORT_SIZE (3)                      */</span>
+        0x91, 0x03, <span class="pl-c">/*   OUTPUT (Cnst,Var,Abs)                */</span>
+        0x95, 0x06, <span class="pl-c">/*   REPORT_COUNT (6)                     */</span>
+        0x75, 0x08, <span class="pl-c">/*   REPORT_SIZE (8)                      */</span>
+        0x15, 0x00, <span class="pl-c">/*   LOGICAL_MINIMUM (0)                  */</span>
+        0x25, 0x65, <span class="pl-c">/*   LOGICAL_MAXIMUM (101)                */</span>
+        0x05, 0x07, <span class="pl-c">/*   USAGE_PAGE (Keyboard)                */</span>
+        0x19, 0x00, <span class="pl-c">/*   USAGE_MINIMUM (Reserved)             */</span>
+        0x29, 0x65, <span class="pl-c">/*   USAGE_MAXIMUM (Keyboard Application) */</span>
+        0x81, 0x00, <span class="pl-c">/*   INPUT (Data,Ary,Abs)                 */</span>
+        0xc0        <span class="pl-c">/* END_COLLECTION                         */</span>
+    }
+};
+
+<span class="pl-k">static</span> <span class="pl-k">struct</span> platform_device my_hid = {
+    .<span class="pl-smi">name</span>           = <span class="pl-s"><span class="pl-pds">"</span>hidg<span class="pl-pds">"</span></span>,
+    .<span class="pl-smi">id</span>         = <span class="pl-c1">0</span>,
+    .<span class="pl-smi">num_resources</span>      = <span class="pl-c1">0</span>,
+    .<span class="pl-smi">resource</span>       = <span class="pl-c1">0</span>,
+    .<span class="pl-smi">dev</span>.<span class="pl-smi">platform_data</span>  = &amp;my_hid_data,
+};</pre></div>
+
+<pre><code>You can add as many HID functions as you want, only limited by
+the amount of interrupt endpoints your gadget driver supports.
+</code></pre>
+
+<h3>
+<a id="configuration-with-configfs" class="anchor" href="#configuration-with-configfs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Configuration with configfs</h3>
+
+<pre><code>Instead of adding fake platform devices and drivers in order to pass
+some data to the kernel, if HID is a part of a gadget composed with
+configfs the hidg_func_descriptor.report_desc is passed to the kernel
+by writing the appropriate stream of bytes to a configfs attribute.
+</code></pre>
+
+<h3>
+<a id="send-and-receive-hid-reports" class="anchor" href="#send-and-receive-hid-reports" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Send and receive HID reports</h3>
+
+<pre><code>HID reports can be sent/received using read/write on the
+/dev/hidgX character devices. See below for an example program
+to do this.
+
+hid_gadget_test is a small interactive program to test the HID
+gadget driver. To use, point it at a hidg device and set the
+device type (keyboard / mouse / joystick) - E.G.:
+
+    # hid_gadget_test /dev/hidg0 keyboard
+
+You are now in the prompt of hid_gadget_test. You can type any
+combination of options and values. Available options and
+values are listed at program start. In keyboard mode you can
+send up to six values.
+
+For example type: g i s t r --left-shift
+
+Hit return and the corresponding report will be sent by the
+HID gadget.
+
+Another interesting example is the caps lock test. Type
+--caps-lock and hit return. A report is then sent by the
+gadget and you should receive the host answer, corresponding
+to the caps lock LED status.
+
+    --caps-lock
+    recv report:2
+
+With this command:
+
+    # hid_gadget_test /dev/hidg1 mouse
+
+You can test the mouse emulation. Values are two signed numbers.
+</code></pre>
+
+<h3>
+<a id="sample-code" class="anchor" href="#sample-code" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sample code</h3>
+
+<div class="highlight highlight-source-c"><pre><span class="pl-c">/* hid_gadget_test */</span>
+
+#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">&lt;</span>pthread.h<span class="pl-pds">&gt;</span></span>
+#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">&lt;</span>string.h<span class="pl-pds">&gt;</span></span>
+#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">&lt;</span>stdio.h<span class="pl-pds">&gt;</span></span>
+#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">&lt;</span>ctype.h<span class="pl-pds">&gt;</span></span>
+#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">&lt;</span>fcntl.h<span class="pl-pds">&gt;</span></span>
+#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">&lt;</span>errno.h<span class="pl-pds">&gt;</span></span>
+#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">&lt;</span>stdio.h<span class="pl-pds">&gt;</span></span>
+#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">&lt;</span>stdlib.h<span class="pl-pds">&gt;</span></span>
+#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">&lt;</span>unistd.h<span class="pl-pds">&gt;</span></span>
+
+#<span class="pl-k">define</span> <span class="pl-en">BUF_LEN</span> <span class="pl-c1">512</span>
+
+<span class="pl-k">struct</span> options {
+    <span class="pl-k">const</span> <span class="pl-k">char</span>    *opt;
+    <span class="pl-k">unsigned</span> <span class="pl-k">char</span> val;
+};
+
+<span class="pl-k">static</span> <span class="pl-k">struct</span> options kmod[] = {
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--left-ctrl<span class="pl-pds">"</span></span>,      .<span class="pl-smi">val</span> = 0x01},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--right-ctrl<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x10},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--left-shift<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x02},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--right-shift<span class="pl-pds">"</span></span>,    .<span class="pl-smi">val</span> = 0x20},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--left-alt<span class="pl-pds">"</span></span>,       .<span class="pl-smi">val</span> = 0x04},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--right-alt<span class="pl-pds">"</span></span>,      .<span class="pl-smi">val</span> = 0x40},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--left-meta<span class="pl-pds">"</span></span>,      .<span class="pl-smi">val</span> = 0x08},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--right-meta<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x80},
+    {.<span class="pl-smi">opt</span> = <span class="pl-c1">NULL</span>}
+};
+
+<span class="pl-k">static</span> <span class="pl-k">struct</span> options kval[] = {
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--return<span class="pl-pds">"</span></span>, .<span class="pl-smi">val</span> = 0x28},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--esc<span class="pl-pds">"</span></span>,    .<span class="pl-smi">val</span> = 0x29},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--bckspc<span class="pl-pds">"</span></span>, .<span class="pl-smi">val</span> = 0x2a},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--tab<span class="pl-pds">"</span></span>,    .<span class="pl-smi">val</span> = 0x2b},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--spacebar<span class="pl-pds">"</span></span>,   .<span class="pl-smi">val</span> = 0x2c},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--caps-lock<span class="pl-pds">"</span></span>,  .<span class="pl-smi">val</span> = 0x39},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--f1<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x3a},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--f2<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x3b},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--f3<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x3c},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--f4<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x3d},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--f5<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x3e},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--f6<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x3f},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--f7<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x40},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--f8<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x41},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--f9<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x42},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--f10<span class="pl-pds">"</span></span>,    .<span class="pl-smi">val</span> = 0x43},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--f11<span class="pl-pds">"</span></span>,    .<span class="pl-smi">val</span> = 0x44},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--f12<span class="pl-pds">"</span></span>,    .<span class="pl-smi">val</span> = 0x45},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--insert<span class="pl-pds">"</span></span>, .<span class="pl-smi">val</span> = 0x49},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--home<span class="pl-pds">"</span></span>,   .<span class="pl-smi">val</span> = 0x4a},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--pageup<span class="pl-pds">"</span></span>, .<span class="pl-smi">val</span> = 0x4b},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--del<span class="pl-pds">"</span></span>,    .<span class="pl-smi">val</span> = 0x4c},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--end<span class="pl-pds">"</span></span>,    .<span class="pl-smi">val</span> = 0x4d},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--pagedown<span class="pl-pds">"</span></span>,   .<span class="pl-smi">val</span> = 0x4e},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--right<span class="pl-pds">"</span></span>,  .<span class="pl-smi">val</span> = 0x4f},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--left<span class="pl-pds">"</span></span>,   .<span class="pl-smi">val</span> = 0x50},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--down<span class="pl-pds">"</span></span>,   .<span class="pl-smi">val</span> = 0x51},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--kp-enter<span class="pl-pds">"</span></span>,   .<span class="pl-smi">val</span> = 0x58},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--up<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x52},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--num-lock<span class="pl-pds">"</span></span>,   .<span class="pl-smi">val</span> = 0x53},
+    {.<span class="pl-smi">opt</span> = <span class="pl-c1">NULL</span>}
+};
+
+<span class="pl-k">int</span> <span class="pl-en">keyboard_fill_report</span>(<span class="pl-k">char</span> report[<span class="pl-c1">8</span>], <span class="pl-k">char</span> buf[BUF_LEN], <span class="pl-k">int</span> *hold)
+{
+    <span class="pl-k">char</span> *tok = <span class="pl-c1">strtok</span>(buf, <span class="pl-s"><span class="pl-pds">"</span> <span class="pl-pds">"</span></span>);
+    <span class="pl-k">int</span> key = <span class="pl-c1">0</span>;
+    <span class="pl-k">int</span> i = <span class="pl-c1">0</span>;
+
+    <span class="pl-k">for</span> (; tok != <span class="pl-c1">NULL</span>; tok = <span class="pl-c1">strtok</span>(<span class="pl-c1">NULL</span>, <span class="pl-s"><span class="pl-pds">"</span> <span class="pl-pds">"</span></span>)) {
+
+        <span class="pl-k">if</span> (<span class="pl-c1">strcmp</span>(tok, <span class="pl-s"><span class="pl-pds">"</span>--quit<span class="pl-pds">"</span></span>) == <span class="pl-c1">0</span>)
+            <span class="pl-k">return</span> -<span class="pl-c1">1</span>;
+
+        <span class="pl-k">if</span> (<span class="pl-c1">strcmp</span>(tok, <span class="pl-s"><span class="pl-pds">"</span>--hold<span class="pl-pds">"</span></span>) == <span class="pl-c1">0</span>) {
+            *hold = <span class="pl-c1">1</span>;
+            <span class="pl-k">continue</span>;
+        }
+
+        <span class="pl-k">if</span> (key &lt; <span class="pl-c1">6</span>) {
+            <span class="pl-k">for</span> (i = <span class="pl-c1">0</span>; kval[i].<span class="pl-smi">opt</span> != <span class="pl-c1">NULL</span>; i++)
+                <span class="pl-k">if</span> (<span class="pl-c1">strcmp</span>(tok, kval[i].<span class="pl-smi">opt</span>) == <span class="pl-c1">0</span>) {
+                    report[<span class="pl-c1">2</span> + key++] = kval[i].<span class="pl-smi">val</span>;
+                    <span class="pl-k">break</span>;
+                }
+            <span class="pl-k">if</span> (kval[i].<span class="pl-smi">opt</span> != <span class="pl-c1">NULL</span>)
+                <span class="pl-k">continue</span>;
+        }
+
+        <span class="pl-k">if</span> (key &lt; <span class="pl-c1">6</span>)
+            <span class="pl-k">if</span> (<span class="pl-c1">islower</span>(tok[<span class="pl-c1">0</span>])) {
+                report[<span class="pl-c1">2</span> + key++] = (tok[<span class="pl-c1">0</span>] - (<span class="pl-s"><span class="pl-pds">'</span>a<span class="pl-pds">'</span></span> - 0x04));
+                <span class="pl-k">continue</span>;
+            }
+
+        <span class="pl-k">for</span> (i = <span class="pl-c1">0</span>; kmod[i].<span class="pl-smi">opt</span> != <span class="pl-c1">NULL</span>; i++)
+            <span class="pl-k">if</span> (<span class="pl-c1">strcmp</span>(tok, kmod[i].<span class="pl-smi">opt</span>) == <span class="pl-c1">0</span>) {
+                report[<span class="pl-c1">0</span>] = report[<span class="pl-c1">0</span>] | kmod[i].<span class="pl-smi">val</span>;
+                <span class="pl-k">break</span>;
+            }
+        <span class="pl-k">if</span> (kmod[i].<span class="pl-smi">opt</span> != <span class="pl-c1">NULL</span>)
+            <span class="pl-k">continue</span>;
+
+        <span class="pl-k">if</span> (key &lt; <span class="pl-c1">6</span>)
+            <span class="pl-c1">fprintf</span>(stderr, <span class="pl-s"><span class="pl-pds">"</span>unknown option: <span class="pl-c1">%s</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, tok);
+    }
+    <span class="pl-k">return</span> <span class="pl-c1">8</span>;
+}
+
+<span class="pl-k">static</span> <span class="pl-k">struct</span> options mmod[] = {
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--b1<span class="pl-pds">"</span></span>, .<span class="pl-smi">val</span> = 0x01},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--b2<span class="pl-pds">"</span></span>, .<span class="pl-smi">val</span> = 0x02},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--b3<span class="pl-pds">"</span></span>, .<span class="pl-smi">val</span> = 0x04},
+    {.<span class="pl-smi">opt</span> = <span class="pl-c1">NULL</span>}
+};
+
+<span class="pl-k">int</span> <span class="pl-en">mouse_fill_report</span>(<span class="pl-k">char</span> report[<span class="pl-c1">8</span>], <span class="pl-k">char</span> buf[BUF_LEN], <span class="pl-k">int</span> *hold)
+{
+    <span class="pl-k">char</span> *tok = <span class="pl-c1">strtok</span>(buf, <span class="pl-s"><span class="pl-pds">"</span> <span class="pl-pds">"</span></span>);
+    <span class="pl-k">int</span> mvt = <span class="pl-c1">0</span>;
+    <span class="pl-k">int</span> i = <span class="pl-c1">0</span>;
+    <span class="pl-k">for</span> (; tok != <span class="pl-c1">NULL</span>; tok = <span class="pl-c1">strtok</span>(<span class="pl-c1">NULL</span>, <span class="pl-s"><span class="pl-pds">"</span> <span class="pl-pds">"</span></span>)) {
+
+        <span class="pl-k">if</span> (<span class="pl-c1">strcmp</span>(tok, <span class="pl-s"><span class="pl-pds">"</span>--quit<span class="pl-pds">"</span></span>) == <span class="pl-c1">0</span>)
+            <span class="pl-k">return</span> -<span class="pl-c1">1</span>;
+
+        <span class="pl-k">if</span> (<span class="pl-c1">strcmp</span>(tok, <span class="pl-s"><span class="pl-pds">"</span>--hold<span class="pl-pds">"</span></span>) == <span class="pl-c1">0</span>) {
+            *hold = <span class="pl-c1">1</span>;
+            <span class="pl-k">continue</span>;
+        }
+
+        <span class="pl-k">for</span> (i = <span class="pl-c1">0</span>; mmod[i].<span class="pl-smi">opt</span> != <span class="pl-c1">NULL</span>; i++)
+            <span class="pl-k">if</span> (<span class="pl-c1">strcmp</span>(tok, mmod[i].<span class="pl-smi">opt</span>) == <span class="pl-c1">0</span>) {
+                report[<span class="pl-c1">0</span>] = report[<span class="pl-c1">0</span>] | mmod[i].<span class="pl-smi">val</span>;
+                <span class="pl-k">break</span>;
+            }
+        <span class="pl-k">if</span> (mmod[i].<span class="pl-smi">opt</span> != <span class="pl-c1">NULL</span>)
+            <span class="pl-k">continue</span>;
+
+        <span class="pl-k">if</span> (!(tok[<span class="pl-c1">0</span>] == <span class="pl-s"><span class="pl-pds">'</span>-<span class="pl-pds">'</span></span> &amp;&amp; tok[<span class="pl-c1">1</span>] == <span class="pl-s"><span class="pl-pds">'</span>-<span class="pl-pds">'</span></span>) &amp;&amp; mvt &lt; <span class="pl-c1">2</span>) {
+            errno = <span class="pl-c1">0</span>;
+            report[<span class="pl-c1">1</span> + mvt++] = (<span class="pl-k">char</span>)<span class="pl-c1">strtol</span>(tok, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>);
+            <span class="pl-k">if</span> (errno != <span class="pl-c1">0</span>) {
+                <span class="pl-c1">fprintf</span>(stderr, <span class="pl-s"><span class="pl-pds">"</span>Bad value:'<span class="pl-c1">%s</span>'<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, tok);
+                report[<span class="pl-c1">1</span> + mvt--] = <span class="pl-c1">0</span>;
+            }
+            <span class="pl-k">continue</span>;
+        }
+
+        <span class="pl-c1">fprintf</span>(stderr, <span class="pl-s"><span class="pl-pds">"</span>unknown option: <span class="pl-c1">%s</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, tok);
+    }
+    <span class="pl-k">return</span> <span class="pl-c1">3</span>;
+}
+
+<span class="pl-k">static</span> <span class="pl-k">struct</span> options jmod[] = {
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--b1<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x10},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--b2<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x20},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--b3<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x40},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--b4<span class="pl-pds">"</span></span>,     .<span class="pl-smi">val</span> = 0x80},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--hat1<span class="pl-pds">"</span></span>,   .<span class="pl-smi">val</span> = 0x00},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--hat2<span class="pl-pds">"</span></span>,   .<span class="pl-smi">val</span> = 0x01},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--hat3<span class="pl-pds">"</span></span>,   .<span class="pl-smi">val</span> = 0x02},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--hat4<span class="pl-pds">"</span></span>,   .<span class="pl-smi">val</span> = 0x03},
+    {.<span class="pl-smi">opt</span> = <span class="pl-s"><span class="pl-pds">"</span>--hatneutral<span class="pl-pds">"</span></span>, .<span class="pl-smi">val</span> = 0x04},
+    {.<span class="pl-smi">opt</span> = <span class="pl-c1">NULL</span>}
+};
+
+<span class="pl-k">int</span> <span class="pl-en">joystick_fill_report</span>(<span class="pl-k">char</span> report[<span class="pl-c1">8</span>], <span class="pl-k">char</span> buf[BUF_LEN], <span class="pl-k">int</span> *hold)
+{
+    <span class="pl-k">char</span> *tok = <span class="pl-c1">strtok</span>(buf, <span class="pl-s"><span class="pl-pds">"</span> <span class="pl-pds">"</span></span>);
+    <span class="pl-k">int</span> mvt = <span class="pl-c1">0</span>;
+    <span class="pl-k">int</span> i = <span class="pl-c1">0</span>;
+
+    *hold = <span class="pl-c1">1</span>;
+
+    <span class="pl-c">/* set default hat position: neutral */</span>
+    report[<span class="pl-c1">3</span>] = 0x04;
+
+    <span class="pl-k">for</span> (; tok != <span class="pl-c1">NULL</span>; tok = <span class="pl-c1">strtok</span>(<span class="pl-c1">NULL</span>, <span class="pl-s"><span class="pl-pds">"</span> <span class="pl-pds">"</span></span>)) {
+
+        <span class="pl-k">if</span> (<span class="pl-c1">strcmp</span>(tok, <span class="pl-s"><span class="pl-pds">"</span>--quit<span class="pl-pds">"</span></span>) == <span class="pl-c1">0</span>)
+            <span class="pl-k">return</span> -<span class="pl-c1">1</span>;
+
+        <span class="pl-k">for</span> (i = <span class="pl-c1">0</span>; jmod[i].<span class="pl-smi">opt</span> != <span class="pl-c1">NULL</span>; i++)
+            <span class="pl-k">if</span> (<span class="pl-c1">strcmp</span>(tok, jmod[i].<span class="pl-smi">opt</span>) == <span class="pl-c1">0</span>) {
+                report[<span class="pl-c1">3</span>] = (report[<span class="pl-c1">3</span>] &amp; 0xF0) | jmod[i].<span class="pl-smi">val</span>;
+                <span class="pl-k">break</span>;
+            }
+        <span class="pl-k">if</span> (jmod[i].<span class="pl-smi">opt</span> != <span class="pl-c1">NULL</span>)
+            <span class="pl-k">continue</span>;
+
+        <span class="pl-k">if</span> (!(tok[<span class="pl-c1">0</span>] == <span class="pl-s"><span class="pl-pds">'</span>-<span class="pl-pds">'</span></span> &amp;&amp; tok[<span class="pl-c1">1</span>] == <span class="pl-s"><span class="pl-pds">'</span>-<span class="pl-pds">'</span></span>) &amp;&amp; mvt &lt; <span class="pl-c1">3</span>) {
+            errno = <span class="pl-c1">0</span>;
+            report[mvt++] = (<span class="pl-k">char</span>)<span class="pl-c1">strtol</span>(tok, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>);
+            <span class="pl-k">if</span> (errno != <span class="pl-c1">0</span>) {
+                <span class="pl-c1">fprintf</span>(stderr, <span class="pl-s"><span class="pl-pds">"</span>Bad value:'<span class="pl-c1">%s</span>'<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, tok);
+                report[mvt--] = <span class="pl-c1">0</span>;
+            }
+            <span class="pl-k">continue</span>;
+        }
+
+        <span class="pl-c1">fprintf</span>(stderr, <span class="pl-s"><span class="pl-pds">"</span>unknown option: <span class="pl-c1">%s</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, tok);
+    }
+    <span class="pl-k">return</span> <span class="pl-c1">4</span>;
+}
+
+<span class="pl-k">void</span> <span class="pl-en">print_options</span>(<span class="pl-k">char</span> c)
+{
+    <span class="pl-k">int</span> i = <span class="pl-c1">0</span>;
+
+    <span class="pl-k">if</span> (c == <span class="pl-s"><span class="pl-pds">'</span>k<span class="pl-pds">'</span></span>) {
+        <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span>    keyboard options:<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>
+               <span class="pl-s"><span class="pl-pds">"</span>        --hold<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>);
+        <span class="pl-k">for</span> (i = <span class="pl-c1">0</span>; kmod[i].<span class="pl-smi">opt</span> != <span class="pl-c1">NULL</span>; i++)
+            <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\t\t</span><span class="pl-c1">%s</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, kmod[i].<span class="pl-smi">opt</span>);
+        <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\n</span>  keyboard values:<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>
+               <span class="pl-s"><span class="pl-pds">"</span>        [a-z] or<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>);
+        <span class="pl-k">for</span> (i = <span class="pl-c1">0</span>; kval[i].<span class="pl-smi">opt</span> != <span class="pl-c1">NULL</span>; i++)
+            <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\t\t</span><span class="pl-c1">%-8s%s</span><span class="pl-pds">"</span></span>, kval[i].<span class="pl-smi">opt</span>, i % <span class="pl-c1">2</span> ? <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>);
+        <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span>);
+    } <span class="pl-k">else</span> <span class="pl-k">if</span> (c == <span class="pl-s"><span class="pl-pds">'</span>m<span class="pl-pds">'</span></span>) {
+        <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span>    mouse options:<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>
+               <span class="pl-s"><span class="pl-pds">"</span>        --hold<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>);
+        <span class="pl-k">for</span> (i = <span class="pl-c1">0</span>; mmod[i].<span class="pl-smi">opt</span> != <span class="pl-c1">NULL</span>; i++)
+            <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\t\t</span><span class="pl-c1">%s</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, mmod[i].<span class="pl-smi">opt</span>);
+        <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\n</span>  mouse values:<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>
+               <span class="pl-s"><span class="pl-pds">"</span>        Two signed numbers<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>
+               <span class="pl-s"><span class="pl-pds">"</span>--quit to close<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>);
+    } <span class="pl-k">else</span> {
+        <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span>    joystick options:<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>);
+        <span class="pl-k">for</span> (i = <span class="pl-c1">0</span>; jmod[i].<span class="pl-smi">opt</span> != <span class="pl-c1">NULL</span>; i++)
+            <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\t\t</span><span class="pl-c1">%s</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, jmod[i].<span class="pl-smi">opt</span>);
+        <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\n</span>  joystick values:<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>
+               <span class="pl-s"><span class="pl-pds">"</span>        three signed numbers<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>
+               <span class="pl-s"><span class="pl-pds">"</span>--quit to close<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>);
+    }
+}
+
+<span class="pl-k">int</span> <span class="pl-en">main</span>(<span class="pl-k">int</span> argc, <span class="pl-k">const</span> <span class="pl-k">char</span> *argv[])
+{
+    <span class="pl-k">const</span> <span class="pl-k">char</span> *filename = <span class="pl-c1">NULL</span>;
+    <span class="pl-k">int</span> fd = <span class="pl-c1">0</span>;
+    <span class="pl-k">char</span> buf[BUF_LEN];
+    <span class="pl-k">int</span> cmd_len;
+    <span class="pl-k">char</span> report[<span class="pl-c1">8</span>];
+    <span class="pl-k">int</span> to_send = <span class="pl-c1">8</span>;
+    <span class="pl-k">int</span> hold = <span class="pl-c1">0</span>;
+    <span class="pl-c1">fd_set</span> rfds;
+    <span class="pl-k">int</span> retval, i;
+
+    <span class="pl-k">if</span> (argc &lt; <span class="pl-c1">3</span>) {
+        <span class="pl-c1">fprintf</span>(stderr, <span class="pl-s"><span class="pl-pds">"</span>Usage: <span class="pl-c1">%s</span> devname mouse|keyboard|joystick<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>,
+            argv[<span class="pl-c1">0</span>]);
+        <span class="pl-k">return</span> <span class="pl-c1">1</span>;
+    }
+
+    <span class="pl-k">if</span> (argv[<span class="pl-c1">2</span>][<span class="pl-c1">0</span>] != <span class="pl-s"><span class="pl-pds">'</span>k<span class="pl-pds">'</span></span> &amp;&amp; argv[<span class="pl-c1">2</span>][<span class="pl-c1">0</span>] != <span class="pl-s"><span class="pl-pds">'</span>m<span class="pl-pds">'</span></span> &amp;&amp; argv[<span class="pl-c1">2</span>][<span class="pl-c1">0</span>] != <span class="pl-s"><span class="pl-pds">'</span>j<span class="pl-pds">'</span></span>)
+      <span class="pl-k">return</span> <span class="pl-c1">2</span>;
+
+    filename = argv[<span class="pl-c1">1</span>];
+
+    <span class="pl-k">if</span> ((fd = <span class="pl-c1">open</span>(filename, O_RDWR, <span class="pl-c1">0666</span>)) == -<span class="pl-c1">1</span>) {
+        <span class="pl-c1">perror</span>(filename);
+        <span class="pl-k">return</span> <span class="pl-c1">3</span>;
+    }
+
+    <span class="pl-c1">print_options</span>(argv[<span class="pl-c1">2</span>][<span class="pl-c1">0</span>]);
+
+    <span class="pl-k">while</span> (<span class="pl-c1">42</span>) {
+
+        <span class="pl-c1">FD_ZERO</span>(&amp;rfds);
+        <span class="pl-c1">FD_SET</span>(STDIN_FILENO, &amp;rfds);
+        <span class="pl-c1">FD_SET</span>(fd, &amp;rfds);
+
+        retval = <span class="pl-c1">select</span>(fd + <span class="pl-c1">1</span>, &amp;rfds, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
+        <span class="pl-k">if</span> (retval == -<span class="pl-c1">1</span> &amp;&amp; errno == EINTR)
+            <span class="pl-k">continue</span>;
+        <span class="pl-k">if</span> (retval &lt; <span class="pl-c1">0</span>) {
+            <span class="pl-c1">perror</span>(<span class="pl-s"><span class="pl-pds">"</span>select()<span class="pl-pds">"</span></span>);
+            <span class="pl-k">return</span> <span class="pl-c1">4</span>;
+        }
+
+        <span class="pl-k">if</span> (<span class="pl-c1">FD_ISSET</span>(fd, &amp;rfds)) {
+            cmd_len = <span class="pl-c1">read</span>(fd, buf, BUF_LEN - <span class="pl-c1">1</span>);
+            <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span>recv report:<span class="pl-pds">"</span></span>);
+            <span class="pl-k">for</span> (i = <span class="pl-c1">0</span>; i &lt; cmd_len; i++)
+                <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span> <span class="pl-c1">%02x</span><span class="pl-pds">"</span></span>, buf[i]);
+            <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span>);
+        }
+
+        <span class="pl-k">if</span> (<span class="pl-c1">FD_ISSET</span>(STDIN_FILENO, &amp;rfds)) {
+            <span class="pl-c1">memset</span>(report, 0x0, <span class="pl-k">sizeof</span>(report));
+            cmd_len = <span class="pl-c1">read</span>(STDIN_FILENO, buf, BUF_LEN - <span class="pl-c1">1</span>);
+
+            <span class="pl-k">if</span> (cmd_len == <span class="pl-c1">0</span>)
+                <span class="pl-k">break</span>;
+
+            buf[cmd_len - <span class="pl-c1">1</span>] = <span class="pl-s"><span class="pl-pds">'</span><span class="pl-cce">\0</span><span class="pl-pds">'</span></span>;
+            hold = <span class="pl-c1">0</span>;
+
+            <span class="pl-c1">memset</span>(report, 0x0, <span class="pl-k">sizeof</span>(report));
+            <span class="pl-k">if</span> (argv[<span class="pl-c1">2</span>][<span class="pl-c1">0</span>] == <span class="pl-s"><span class="pl-pds">'</span>k<span class="pl-pds">'</span></span>)
+                to_send = <span class="pl-c1">keyboard_fill_report</span>(report, buf, &amp;hold);
+            <span class="pl-k">else</span> <span class="pl-k">if</span> (argv[<span class="pl-c1">2</span>][<span class="pl-c1">0</span>] == <span class="pl-s"><span class="pl-pds">'</span>m<span class="pl-pds">'</span></span>)
+                to_send = <span class="pl-c1">mouse_fill_report</span>(report, buf, &amp;hold);
+            <span class="pl-k">else</span>
+                to_send = <span class="pl-c1">joystick_fill_report</span>(report, buf, &amp;hold);
+
+            <span class="pl-k">if</span> (to_send == -<span class="pl-c1">1</span>)
+                <span class="pl-k">break</span>;
+
+            <span class="pl-k">if</span> (<span class="pl-c1">write</span>(fd, report, to_send) != to_send) {
+                <span class="pl-c1">perror</span>(filename);
+                <span class="pl-k">return</span> <span class="pl-c1">5</span>;
+            }
+            <span class="pl-k">if</span> (!hold) {
+                <span class="pl-c1">memset</span>(report, 0x0, <span class="pl-k">sizeof</span>(report));
+                <span class="pl-k">if</span> (<span class="pl-c1">write</span>(fd, report, to_send) != to_send) {
+                    <span class="pl-c1">perror</span>(filename);
+                    <span class="pl-k">return</span> <span class="pl-c1">6</span>;
+                }
+            }
+        }
+    }
+
+    <span class="pl-c1">close</span>(fd);
+    <span class="pl-k">return</span> <span class="pl-c1">0</span>;
+}</pre></div>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/aagallag/hid_gadget_test">Hid gadget test</a> is maintained by <a href="https://github.com/aagallag">aagallag</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
