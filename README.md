@@ -455,3 +455,6 @@ int main(int argc, const char *argv[])
 	return 0;
 }
 ```
+
+###Source
+https://www.kernel.org/doc/Documentation/usb/gadget_hid.txt
