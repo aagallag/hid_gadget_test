@@ -1,6 +1,8 @@
 
 ##		     Linux USB HID gadget driver
 
+[![Build Status](https://travis-ci.org/aagallag/hid_gadget_test.svg?branch=master)](https://travis-ci.org/aagallag/hid_gadget_test)
+
 ###Introduction
 
 	The HID Gadget driver provides emulation of USB Human Interface
