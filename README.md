@@ -3,7 +3,7 @@
 
 [![Build Status](https://travis-ci.org/aagallag/hid_gadget_test.svg?branch=master)](https://travis-ci.org/aagallag/hid_gadget_test)
 
-###Introduction
+### Introduction
 
 	The HID Gadget driver provides emulation of USB Human Interface
 	Devices (HID). The basic HID handling is done in the kernel,
@@ -13,7 +13,7 @@
 	For more details about HID, see the developer page on
 	http://www.usb.org/developers/hidpage/
 
-###Configuration
+### Configuration
 
 	g_hid is a platform driver, so to use it you need to add
 	struct platform_device(s) to your platform code defining the
@@ -78,14 +78,14 @@ static struct platform_device my_hid = {
 	You can add as many HID functions as you want, only limited by
 	the amount of interrupt endpoints your gadget driver supports.
 
-###Configuration with configfs
+### Configuration with configfs
 
 	Instead of adding fake platform devices and drivers in order to pass
 	some data to the kernel, if HID is a part of a gadget composed with
 	configfs the hidg_func_descriptor.report_desc is passed to the kernel
 	by writing the appropriate stream of bytes to a configfs attribute.
 
-###Send and receive HID reports
+### Send and receive HID reports
 
 	HID reports can be sent/received using read/write on the
 	/dev/hidgX character devices. See below for an example program
@@ -122,7 +122,7 @@ static struct platform_device my_hid = {
 	You can test the mouse emulation. Values are two signed numbers.
 
 
-###Sample code
+### Sample code
 ```c
 /* hid_gadget_test */
 
@@ -456,5 +456,5 @@ int main(int argc, const char *argv[])
 }
 ```
 
-###Source
+### Source
 https://www.kernel.org/doc/Documentation/usb/gadget_hid.txt
