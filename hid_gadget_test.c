@@ -223,7 +223,7 @@ void print_options(char c)
 		for (i = 0; kmod[i].opt != NULL; i++)
 			printf("\t\t%s\n", kmod[i].opt);
 		printf("\n	keyboard values:\n"
-		       "		[a-z] or\n");
+		       "		[a-z,0-9] or\n");
 		for (i = 0; kval[i].opt != NULL; i++)
 			printf("\t\t%-8s%s", kval[i].opt, i % 2 ? "\n" : "");
 		printf("\n");
