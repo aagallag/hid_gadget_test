@@ -95,6 +95,13 @@ int keyboard_fill_report(char report[8], char buf[BUF_LEN], int *hold)
 				continue;
 			}
 
+		
+                if (key < 6)
+                        if (isdigit(tok[0])) {
+                                report[2 + key++] = (tok[0] - ('1' - 0x1e));
+                                continue;
+                        }
+		
 		for (i = 0; kmod[i].opt != NULL; i++)
 			if (strcmp(tok, kmod[i].opt) == 0) {
 				report[0] = report[0] | kmod[i].val;
